@@ -880,12 +880,17 @@ class ActionBase(with_metaclass(ABCMeta, object)):
 
         display.debug("_low_level_execute_command(): executing: %s" % (cmd,))
 
+        live_stdout = self._is_task_with_live_stdout()
+
         # Change directory to basedir of task for command execution when connection is local
         if self._connection.transport == 'local':
             cwd = os.getcwd()
             os.chdir(self._loader.get_basedir())
         try:
-            rc, stdout, stderr = self._connection.exec_command(cmd, in_data=in_data, sudoable=sudoable)
+            if live_stdout is True and hasattr(self._connection, 'exec_command_live'):
+                rc, stdout, stderr = self._connection.exec_command_live(cmd, in_data=in_data, sudoable=sudoable)
+            else:
+                rc, stdout, stderr = self._connection.exec_command(cmd, in_data=in_data, sudoable=sudoable)
         finally:
             if self._connection.transport == 'local':
                 os.chdir(cwd)
@@ -913,7 +918,7 @@ class ActionBase(with_metaclass(ABCMeta, object)):
         out = self._strip_success_message(out)
 
         display.debug(u"_low_level_execute_command() done: rc=%d, stdout=%s, stderr=%s" % (rc, out, err))
-        return dict(rc=rc, stdout=out, stdout_lines=out.splitlines(), stderr=err)
+        return dict(rc=rc, stdout=out, stdout_lines=out.splitlines(), stderr=err, live_stdout=live_stdout)
 
     def _get_diff_data(self, destination, source, task_vars, source_file=True):
 
@@ -983,3 +988,13 @@ class ActionBase(with_metaclass(ABCMeta, object)):
 
         # if missing it will return a file not found exception
         return self._loader.path_dwim_relative_stack(path_stack, dirname, needle)
+
+    def _is_task_with_live_stdout(self):
+        live_stdout = 0
+        if self._task.action in ('raw', 'script') and self._task.args.get('live_stdout') == 'yes':
+            live_stdout += 1
+        if self._task.action == 'raw' and self._play_context.raw_live_stdout is True:
+            live_stdout += 1
+        if self._task.action == 'script' and self._play_context.script_live_stdout is True:
+            live_stdout += 1
+        return live_stdout > 0

@@ -242,6 +242,10 @@ class PlayContext(Base):
     _su_flags = FieldAttribute(isa='string', default=C.DEFAULT_SU_FLAGS)
     _su_pass = FieldAttribute(isa='string')
 
+    # live stdout
+    _raw_live_stdout = FieldAttribute(isa='bool', default=False)
+    _script_live_stdout = FieldAttribute(isa='bool', default=False)
+
     # general flags
     _verbosity = FieldAttribute(isa='int', default=0)
     _only_tags = FieldAttribute(isa='set', default=set())
