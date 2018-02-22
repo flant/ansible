@@ -34,6 +34,8 @@ import shutil
 import subprocess
 import fcntl
 import getpass
+import select
+import sys
 
 import ansible.constants as C
 from ansible.compat import selectors
@@ -69,7 +71,13 @@ class Connection(ConnectionBase):
             self._connected = True
         return self
 
+    def exec_command_live(self, cmd, in_data=None, sudoable=True):
+        return self._exec_command(cmd, in_data=in_data, sudoable=sudoable, live_stdout=True)
+
     def exec_command(self, cmd, in_data=None, sudoable=True):
+        return self._exec_command(cmd, in_data=in_data, sudoable=sudoable, live_stdout=False)
+
+    def _exec_command(self, cmd, in_data=None, sudoable=True, live_stdout=False):
         ''' run a command on the local host '''
 
         super(Connection, self).exec_command(cmd, in_data=in_data, sudoable=sudoable)
@@ -129,9 +137,35 @@ class Connection(ConnectionBase):
             fcntl.fcntl(p.stdout, fcntl.F_SETFL, fcntl.fcntl(p.stdout, fcntl.F_GETFL) & ~os.O_NONBLOCK)
             fcntl.fcntl(p.stderr, fcntl.F_SETFL, fcntl.fcntl(p.stderr, fcntl.F_GETFL) & ~os.O_NONBLOCK)
 
-        display.debug("getting output with communicate()")
-        stdout, stderr = p.communicate(in_data)
-        display.debug("done communicating")
+        if live_stdout is True:
+            display.debug("getting live output")
+            stdout = []
+            stderr = []
+
+            while True:
+                reads = [p.stdout.fileno(), p.stderr.fileno()]
+                ret = select.select(reads, [], [])
+
+                for fd in ret[0]:
+                    if fd == p.stdout.fileno():
+                        read = p.stdout.readline()
+                        if read:
+                            sys.stdout.write(to_text(read))
+                            stdout.append(read)
+                    if fd == p.stderr.fileno():
+                        read = p.stderr.readline()
+                        if read:
+                            sys.stderr.write(to_text(read))
+                            stderr.append(read)
+
+                if p.poll() != None:
+                    break
+            stdout, stderr = b''.join(stdout), b''.join(stderr)
+            display.debug("done live output")
+        else:
+            display.debug("getting output with communicate()")
+            stdout, stderr = p.communicate(in_data)
+            display.debug("done communicating")
 
         display.debug("done with local.exec_command()")
         return (p.returncode, stdout, stderr)

@@ -107,6 +107,10 @@ MAGIC_VARIABLE_MAPPING = dict(
     su_pass=('ansible_su_password', 'ansible_su_pass'),
     su_exe=('ansible_su_exe', ),
     su_flags=('ansible_su_flags', ),
+
+    # live stdout
+    raw_live_stdout=('ansible_raw_live_stdout',),
+    script_live_stdout=('ansible_script_live_stdout',),
 )
 
 # TODO: needs to be configurable
@@ -241,6 +245,10 @@ class PlayContext(Base):
     _su_exe = FieldAttribute(isa='string', default=C.DEFAULT_SU_EXE)
     _su_flags = FieldAttribute(isa='string', default=C.DEFAULT_SU_FLAGS)
     _su_pass = FieldAttribute(isa='string')
+
+    # live stdout
+    _raw_live_stdout = FieldAttribute(isa='bool', default=False)
+    _script_live_stdout = FieldAttribute(isa='bool', default=False)
 
     # general flags
     _verbosity = FieldAttribute(isa='int', default=0)
