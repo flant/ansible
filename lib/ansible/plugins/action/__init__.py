@@ -997,4 +997,6 @@ class ActionBase(with_metaclass(ABCMeta, object)):
             live_stdout += 1
         if self._task.action == 'script' and self._play_context.script_live_stdout is True:
             live_stdout += 1
+        if self._task.action in ('raw', 'script') and self._task.args.get('live_stdout') == 'no':
+            live_stdout = 0
         return live_stdout > 0

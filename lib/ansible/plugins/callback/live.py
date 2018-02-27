@@ -232,4 +232,4 @@ class CallbackModule(CallbackBase):
             # last tag is dump of section
             dump_config_section = tags[-1]
         dump_config_doc = self._read_dump_config_doc()
-        self._display.display("\n\n%s\n...%s\n%s" % (dapp_stage_name, dump_config_section, dump_config_doc), color=C.COLOR_DEBUG)
+        self._display.display("\n\n%s\n...\n%s\n%s" % (dapp_stage_name, dump_config_section, dump_config_doc), color=C.COLOR_DEBUG)
