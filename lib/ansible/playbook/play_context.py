@@ -107,6 +107,10 @@ MAGIC_VARIABLE_MAPPING = dict(
     su_pass=('ansible_su_password', 'ansible_su_pass'),
     su_exe=('ansible_su_exe', ),
     su_flags=('ansible_su_flags', ),
+
+    # live stdout
+    raw_live_stdout=('ansible_raw_live_stdout',),
+    script_live_stdout=('ansible_script_live_stdout',),
 )
 
 # TODO: needs to be configurable
