@@ -185,18 +185,6 @@ class CallbackModule(CallbackBase):
     def v2_runner_on_unreachable(self, result):
         self._display.display("%s | UNREACHABLE! => %s" % (result._host.get_name(), self._dump_results(result._result, indent=4)), color=C.COLOR_UNREACHABLE)
 
-    # results for looped tasks
-    def v2_runner_item_on_ok(self, result):
-        super().v2_runner_item_on_ok(result)
-
-    def v2_runner_item_on_failed(self, result):
-        super().v2_runner_item_on_failed(result)
-
-    def v2_runner_item_on_skipped(self, result):
-        super().v2_runner_item_on_skipped(result)
-
-
-
     def v2_on_file_diff(self, result):
         if 'diff' in result._result and result._result['diff']:
             self._display.display(self._get_diff(result._result['diff']))
