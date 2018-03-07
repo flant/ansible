@@ -148,15 +148,16 @@ class Connection(ConnectionBase):
 
                 for fd in ret[0]:
                     if fd == p.stdout.fileno():
-                        read = p.stdout.readline()
-                        if read:
-                            sys.stdout.write(to_text(read))
-                            stdout.append(read)
+                        for line in iter(p.stdout.readline, b''):
+                            sys.stdout.write(line)
+                            sys.stdout.flush()
+                            stdout.append(line)
+
                     if fd == p.stderr.fileno():
-                        read = p.stderr.readline()
-                        if read:
-                            sys.stderr.write(to_text(read))
-                            stderr.append(read)
+                        for line in iter(p.stderr.readline, b''):
+                            sys.stderr.write(line)
+                            sys.stderr.flush()
+                            stdout.append(line)
 
                 if p.poll() != None:
                     break
